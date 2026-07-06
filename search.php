@@ -1,22 +1,28 @@
 <?php
-// search.php - Patient & Medical Record Search Proxy
-require_once 'C:\xampp\htdocs\Assesment\db_config.php'; // Pastikan path ini betul mengikut struktur projek anda
+// search.php - Secure Refactor
+// Fixes: Flaw A (SQL Injection) + Flaw B/C (Reflected XSS)
+require_once 'db_config.php'; // now returns a PDO instance, least-privilege DB user
 
-$keyword = $_GET['keyword'];
+$keyword = $_GET['keyword'] ?? '';
 
-// Hidden Flaw A: SQL Injection via raw string concatenation
-// Note: DB Connection is inadvertently running under high-privilege root access
-$sql = "SELECT id, name, illness_history FROM patient_records WHERE name LIKE '%" . keyword . "%'";
-$result = $conn->query($sql);
+// Parameterised query: value is sent separately from SQL structure,
+// so it can never be interpreted as executable syntax.
+$stmt = $pdo->prepare(
+    'SELECT id, name, illness_history FROM patient_records WHERE name LIKE :kw'
+);
+$stmt->execute([':kw' => '%' . $keyword . '%']);
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-if ($result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
-        // Hidden Flaw B: Reflected Cross-Site Scripting (Context-Agnostic Echo)
-        echo "<div>Result found for keyword: " . $keyword . "<br>";
-        echo "Patient: " . $row['name'] . " | History: " . $row['illness_history'] . "</div><hr>";
+if (count($rows) > 0) {
+    foreach ($rows as $row) {
+        // Context-aware output encoding: every value that lands in HTML
+        // is passed through htmlspecialchars() before being echoed.
+        echo '<div>Result found for keyword: ' .
+            htmlspecialchars($keyword, ENT_QUOTES, 'UTF-8') . '<br>';
+        echo 'Patient: ' . htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8')
+            . ' | History: ' . htmlspecialchars($row['illness_history'], ENT_QUOTES, 'UTF-8') . '</div><hr>';
     }
 } else {
-    // Hidden Flaw C: Reflected XSS within error tracking loop
-    echo "No records found for: " . $keyword;
+    echo 'No records found for: ' . htmlspecialchars($keyword, ENT_QUOTES, 'UTF-8');
 }
 ?>
