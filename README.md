@@ -20,7 +20,7 @@
 
 
 * **GitHub Link:** [https://github.com/sepz36/SECR4483_SCSR4483-Secure-Programming-Final-Examination-Alternative-Assessment-](https://www.google.com/search?q=https://github.com/sepz36/SECR4483_SCSR4483-Secure-Programming-Final-Examination-Alternative-Assessment-) *(Derived from the provided repository setup screenshot)*
-* **YouTube Link:** `[Insert your YouTube Link here]`
+* **YouTube Link:** https://youtu.be/zTYvD4XyxNI
 
 
 ---
